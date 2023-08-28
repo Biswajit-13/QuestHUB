@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
-import { db } from "../../../utils/firebase";
-import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { auth, db } from "../../../utils/firebase";
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, collection,addDoc } from "firebase/firestore";
 import { FaHeart } from "react-icons/fa";
 import {AiOutlineHeart} from "react-icons/ai";
 import IconsUtil from "../../../assets/utils/iconsUtil";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 const LikeButton = ({ likeLen,postId, userId, displayName, photoURL }) => {
   const [isLiked, setIsLiked] = useState(false);
+
+  const [logedUser, setLogedUser] = useAuthState(auth);
 
   useEffect(() => {
     // Fetch the post data and check if the user has already liked the post
@@ -38,7 +41,21 @@ const LikeButton = ({ likeLen,postId, userId, displayName, photoURL }) => {
         await updateDoc(postRef, {
           likes: arrayUnion({ userId, displayName, photoURL }),
         });
-      }
+
+          // Get the userId of the post
+       // Get the userId of the post
+       const postSnapshot = await getDoc(postRef);
+       const postUserId = postSnapshot.data().userId;
+ 
+       // Add a notification to the "notifications" subcollection under the post's author's userId
+       const notificationData = {
+         postId: postId, // ID of the post associated with the notification
+         senderId: userId,
+         message: `${displayName} liked your post`,
+         timestamp: new Date(),
+       };
+       await addDoc(collection(db, 'users', postUserId, 'notifications'), notificationData);
+     }
       setIsLiked((prevIsLiked) => !prevIsLiked);
     } catch (error) {
       console.error("Error updating like:", error);

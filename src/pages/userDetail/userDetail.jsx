@@ -92,7 +92,6 @@ const UserDetail = () => {
                             {!isFollowed && (
                                 <Button title="Follow" onClick={handleFollowClick} />
                             )}
-                            <Button title="Message" />
                         </div>
                     )}
                 </div>

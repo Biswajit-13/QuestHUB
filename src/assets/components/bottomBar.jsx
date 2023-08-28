@@ -53,7 +53,7 @@ const BottomBar = ({ displayRegularPosts, displayFollowingPosts }) => {
           </button>
         </div>
       </div>
-      <div class="grid h-full max-w-lg grid-cols-5 mx-auto">
+      <div class="grid h-full max-w-lg grid-cols-4 mx-auto">
         <button data-tooltip-target="tooltip-bookmark" type="button" class="inline-flex flex-col items-center justify-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800 group">
           <IconsUtil 
           onClick={()=>navigateToHome(navigate)}
@@ -68,11 +68,6 @@ const BottomBar = ({ displayRegularPosts, displayFollowingPosts }) => {
           <IconsUtil 
           onClick={()=>navigateToPost(navigate)}
           icon={<FaPlus style={{fontSize:18}}/>} />
-        </button>
-        <button data-tooltip-target="tooltip-bookmark" type="button" class="inline-flex flex-col items-center justify-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800 group">
-          <IconsUtil
-          onClick={()=>navigateToChat(navigate)}
-           icon={<AiFillMessage style={{fontSize:18}}/>} />
         </button>
         <button data-tooltip-target="tooltip-bookmark" type="button" class="inline-flex flex-col items-center justify-center p-4 hover:bg-gray-50 dark:hover:bg-gray-800 group">
           <IconsUtil

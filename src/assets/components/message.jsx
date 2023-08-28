@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AvatarSmall from "../utils/avatarSmall";
 import IconsUtil from '../utils/iconsUtil';
 import { AiOutlineComment, AiOutlineEdit, AiOutlineDelete, AiOutlineShareAlt } from "react-icons/ai";
@@ -7,17 +7,19 @@ import { FcCancel } from "react-icons/fc"
 import Paragraph from '../utils/paragraph';
 import { Link } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '../../utils/firebase';
+import {db, auth } from '../../utils/firebase';
 import updatePost from "../../pages/post/functions/updatePost";
 import deletePost from "../../pages/post/functions/deletePost";
 import LikeButton from '../../pages/postDetail/functions/likePost';
 import { toast } from 'react-toastify';
+import {collection,doc, setDoc, getDoc, serverTimestamp,deleteDoc} from "firebase/firestore";
 
 
 const Message = ({ avatar, username, description, userId, postId, likeLen, commentLen,time }) => {
   const [logedUser] = useAuthState(auth);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedDescription, setEditedDescription] = useState(description);
+  const [isBookmarked, setIsBookmarked] = useState(false);
 
   const handleEditButtonClick = () => {
     setIsEditMode(!isEditMode);
@@ -39,6 +41,17 @@ const Message = ({ avatar, username, description, userId, postId, likeLen, comme
     }
   };
 
+  useEffect(() => {
+    async function checkBookmarkStatus() {
+      if (logedUser) {
+        const userSavedRef = collection(db, 'users', logedUser.uid, 'saved');
+        const savedPostSnapshot = await getDoc(doc(userSavedRef, postId));
+        setIsBookmarked(savedPostSnapshot.exists());
+      }
+    }
+    checkBookmarkStatus();
+  }, [logedUser, postId]);
+
   const handleDeleteButtonClick = async () => {
     try {
       await deletePost(postId);
@@ -48,6 +61,34 @@ const Message = ({ avatar, username, description, userId, postId, likeLen, comme
   };
 
  
+  const handleBookMark = async () => {
+    try {
+      if (!logedUser) {
+        toast.error("Please log in to bookmark posts.");
+        return;
+      }
+
+      const userSavedRef = collection(db, 'users', logedUser.uid, 'saved');
+
+      if (isBookmarked) {
+        await deleteDoc(doc(userSavedRef, postId)); // Remove the bookmark
+      } else {
+        await setDoc(doc(userSavedRef, postId), {
+          timestamp: serverTimestamp(),
+        }); // Bookmark the post
+      }
+
+      setIsBookmarked(!isBookmarked); // Toggle bookmark status
+
+      const actionMessage = isBookmarked ? "Bookmark removed." : "Post bookmarked successfully.";
+      toast.success(actionMessage);
+    } catch (error) {
+      console.error("Error bookmarking/removing the post:", error);
+      toast.error("Error bookmarking/removing the post.");
+    }
+  };
+
+  // ... (rest of the return statement)
 
   return (
     <div className="flex flex-col justify-center mb-3 px-2 py-2">
@@ -97,7 +138,7 @@ const Message = ({ avatar, username, description, userId, postId, likeLen, comme
         <Link to={`/post/${postId}?avatar=${avatar}&username=${username}&description=${description}&userId=${userId}&postId=${postId}&time=${time}`}>
           <IconsUtil icon={<AiOutlineComment />} number={commentLen} />
         </Link>
-        <IconsUtil icon={<FaRegBookmark />} />
+        <IconsUtil icon={<FaRegBookmark />} onClick={handleBookMark}/>
         {userId === logedUser?.uid && (
           <>
             <IconsUtil icon={<AiOutlineDelete />} onClick={handleDeleteButtonClick} />
