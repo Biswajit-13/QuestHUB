@@ -14,8 +14,7 @@ const Post = () => {
       description: '',
     });
      if(!logedUser) navigateToLogin(navigate);
-    // ... Your other code ...
-
+  
     const handleSubmit = (event) => {
       event.preventDefault();
       submitPost(post, logedUser, navigate); // Call the submitPost function
